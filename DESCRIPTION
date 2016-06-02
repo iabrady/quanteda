@@ -93,6 +93,7 @@ Collate:
     'toLower.R'
     'tokenize.R'
     'tokenize_outtakes.R'
+    'unicode.R'
     'wordstem.R'
     'zzz.R'
 RoxygenNote: 5.0.1

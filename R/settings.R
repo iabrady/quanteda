@@ -11,7 +11,8 @@ SETTINGS_OPTIONS <- c("stopwords",
                       "clean_removeDigits",
                       "clean_removePunct",
                       "unitsoriginal",
-                      "units") 
+                      "units",
+                      "unicode_normalization") 
 DEFAULT_DELIM_SENTENCE <- ".!?"
 DEFAULT_DELIM_WORD <- " "
 DEFAULT_DELIM_PARAGRAPH <- "\n\n"
@@ -98,7 +99,8 @@ settingsInitialize <- function() {
                          clean_removeDigits=TRUE,
                          clean_removePunct=TRUE,
                          units="documents",
-                         unitsoriginal="documents")
+                         unitsoriginal="documents",
+                         unicode_normalization = "nfc")
     class(tempsettings) <- c("settings", class(tempsettings))
     tempsettings
 }

@@ -158,12 +158,18 @@ corpus.character <- function(x, docnames = NULL, docvars = NULL,
         } 
     }
     
+    
     # build and return the corpus object
     tempCorpus <- list(documents=documents, 
                        metadata=metadata, 
                        settings=settings(),
                        tokens=NULL)
     class(tempCorpus) <- list("corpus", class(tempCorpus))
+
+    # perform Unicode normalization
+    texts(tempCorpus) <- quanteda:::unicodeNorm(texts(tempCorpus),
+                                               settings(tempCorpus, "unicode_normalization"))
+
     return(tempCorpus)
 }
 

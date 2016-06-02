@@ -99,6 +99,9 @@ dictionary <- function(x = NULL, file = NULL, format = NULL,
             x <- readLIWCdict(file, toLower = toLower, encoding = encoding)
     }
     
+    # unicode normalization of values only - uses default
+    x <- lapply(x, quanteda:::unicodeNorm)
+    
     new("dictionary", x, format = format, file = file, concatenator = concatenator)
 }
 
