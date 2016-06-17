@@ -5,6 +5,7 @@
 \alias{fcm.character}
 \alias{fcm.corpus}
 \alias{fcm.tokenizedTexts}
+\alias{fcm2.tokenizedTexts}
 \title{create a feature co-occurrence matrix}
 \usage{
 fcm(x, ...)
@@ -16,6 +17,8 @@ fcm(x, ...)
 \method{fcm}{corpus}(x, ...)
 
 \method{fcm}{character}(x, ...)
+
+fcm2.tokenizedTexts(x, context = c("document", "window"), window = 5L)
 }
 \arguments{
 \item{x}{character vector, corpus, or tokenized texts from which to generate
@@ -42,12 +45,23 @@ target feature}
 sentences}
 
 \item{tri}{if \code{TRUE} return only upper triangle (including diagonal)}
+
+\item{context}{the context in which to consider term co-occurrence: 
+\code{"document"} for co-occurrence counts within document; \code{"window"}
+for co-occurrence within a defined window of words, which requires a 
+postive integer value for \code{window}}
+
+\item{window}{positive integer value for the size of a window on either side 
+of the target feature, default is 5, meaning 5 words before and after the 
+target feature}
 }
 \description{
 Create a sparse feature co-occurrence matrix within a user-defined context. 
 The context can be defined as a document or a window within a collection of
 documents, with an optional vector of weights applied to the co-occurrence
 counts.
+
+C++ version of fcm
 }
 \examples{
 (txts <- c(paste(letters[c(1, 1:3)], collapse = " "), 
@@ -61,5 +75,9 @@ txt <- c("The quick brown fox jumped over the lazy dog.",
 toks <- tokenize(toLower(txt), removePunct = TRUE)
 fcm(toks, context = "window", window = 3)
 fcm(toks, context = "window", window = 2)
+txt <- c("The quick brown fox jumped over the lazy dog.",
+         "The dog jumped and ate the fox.")
+toks <- tokenize(toLower(txt), removePunct = TRUE)
+fcm2.tokenizedTexts(toks, context = "window", window = 3)
 }
 

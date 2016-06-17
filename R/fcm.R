@@ -156,6 +156,33 @@ setMethod("print", signature(x = "fcm"),
 setMethod("show", signature(object = "fcm"), function(object) print(object))
 
 
+#' C++ version of fcm
+#' @rdname fcm
+#' @param context the context in which to consider term co-occurrence: 
+#'   \code{"document"} for co-occurrence counts within document; \code{"window"}
+#'   for co-occurrence within a defined window of words, which requires a 
+#'   postive integer value for \code{window}
+#' @param window positive integer value for the size of a window on either side 
+#'   of the target feature, default is 5, meaning 5 words before and after the 
+#'   target feature
+#' @examples
+#' txt <- c("The quick brown fox jumped over the lazy dog.",
+#'          "The dog jumped and ate the fox.")
+#' toks <- tokenize(toLower(txt), removePunct = TRUE)
+#' fcm2.tokenizedTexts(toks, context = "window", window = 3)
+#' @export
+fcm2.tokenizedTexts <- function(x, context = c("document", "window"), window = 5L){
+  
+  if(context == 'document'){
+    window <- max(lengths(x))
+  }
+  types <- unique(unlist(x, use.names=FALSE))
+  y <- fcm_cpp(x, types, window)
+  rownames(y) <- colnames(y) <- types
+  return(y)
+}
+
+
  
 
 
