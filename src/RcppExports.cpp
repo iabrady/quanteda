@@ -7,15 +7,16 @@
 using namespace Rcpp;
 
 // fcm_cpp
-NumericMatrix fcm_cpp(List texts, const CharacterVector& types, const int& window);
-RcppExport SEXP quanteda_fcm_cpp(SEXP textsSEXP, SEXP typesSEXP, SEXP windowSEXP) {
+List fcm_cpp(List& texts, const CharacterVector& types, const int& window, const int& n);
+RcppExport SEXP quanteda_fcm_cpp(SEXP textsSEXP, SEXP typesSEXP, SEXP windowSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< List >::type texts(textsSEXP);
+    Rcpp::traits::input_parameter< List& >::type texts(textsSEXP);
     Rcpp::traits::input_parameter< const CharacterVector& >::type types(typesSEXP);
     Rcpp::traits::input_parameter< const int& >::type window(windowSEXP);
-    __result = Rcpp::wrap(fcm_cpp(texts, types, window));
+    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
+    __result = Rcpp::wrap(fcm_cpp(texts, types, window, n));
     return __result;
 END_RCPP
 }

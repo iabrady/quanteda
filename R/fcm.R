@@ -170,16 +170,24 @@ setMethod("show", signature(object = "fcm"), function(object) print(object))
 #'          "The dog jumped and ate the fox.")
 #' toks <- tokenize(toLower(txt), removePunct = TRUE)
 #' fcm2.tokenizedTexts(toks, context = "window", window = 3)
+#' fcm2.tokenizedTexts(list(letters), context = "window", window = 3)
 #' @export
 fcm2.tokenizedTexts <- function(x, context = c("document", "window"), window = 5L){
   
   if(context == 'document'){
-    window <- max(lengths(x))
+      window <- max(lengths(x))
   }
   types <- unique(unlist(x, use.names=FALSE))
-  y <- fcm_cpp(x, types, window)
-  rownames(y) <- colnames(y) <- types
-  return(y)
+  n <- sum(lengths(x)) * window * 2
+  y <- fcm_cpp(x, types, window, n)
+  
+  cat("Making sparseMatrix\n")
+  mx <- Matrix::sparseMatrix(i = y$target, 
+                             j = y$collocate, 
+                             x = 1L,
+                             dimnames = list(context = types, features = types))
+  
+  return(mx)
 }
 
 
