@@ -12,8 +12,8 @@
 #' summary(wca) 
 #' @import ca
 #' @export
-textmodel_ca <- function(data, smooth=0, ...) {
-    if (!is(data, "dfm"))
+textmodel_ca <- function(data, smooth = 0, ...) {
+    if (!is(data, "dfm")) 
         stop("supplied data must be a dfm object.")
     data <- data + smooth  # smooth by the specified amount
     model <- ca::ca(as.matrix(data), ...)

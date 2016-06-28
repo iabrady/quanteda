@@ -23,7 +23,7 @@
 #'   user, and accessing a pre-defined list of words to ignore does not mean
 #'   that it will perfectly fit your needs. You are strongly encourged to
 #'   inspect the list and to make sure it fits your particular requirements.  The 
-#'   built-in English stopword list does not contain "will", for instance, because
+#'   built-in English stopword list does not contain 'will', for instance, because
 #'   of its multiple meanings, but you might want to include this word for your
 #'   own application.
 #' @param kind The pre-set kind of stopwords (as a character string).  Allowed
@@ -36,19 +36,19 @@
 #' @name stopwords
 #' @export
 #' @examples
-#' stopwords("english")[1:5]
-#' stopwords("italian")[1:5]
-#' stopwords("arabic")[1:5]
+#' stopwords('english')[1:5]
+#' stopwords('italian')[1:5]
+#' stopwords('arabic')[1:5]
 #'
 #' # adding to the built-in stopword list
-#' toks <- tokenize("The judge will sentence Mr. Adams to nine years in prison", removePunct = TRUE)
-    #' removeFeatures(toks, c(stopwords("english"), "will", "mr", "nine"))
-stopwords <- function(kind="english", verbose=FALSE) {
-    if (!(kind %in% c("english", "SMART", "danish", "french", "hungarian", "norwegian", "russian", "swedish", "catalan", "dutch", "finnish",   
-                      "german", "italian", "portuguese", "spanish", "arabic"))) {
+#' toks <- tokenize('The judge will sentence Mr. Adams to nine years in prison', removePunct = TRUE)
+#' removeFeatures(toks, c(stopwords('english'), 'will', 'mr', 'nine'))
+stopwords <- function(kind = "english", verbose = FALSE) {
+    if (!(kind %in% c("english", "SMART", "danish", "french", "hungarian", "norwegian", "russian", "swedish", "catalan", "dutch", "finnish", "german", "italian", "portuguese", "spanish", "arabic"))) {
         stop(paste(kind, "is not a recognized stopword list type."))
     }
-    if (verbose) catm("note: using", kind, "builtin stopwords, but beware that one size may not fit all.\n")
+    if (verbose) 
+        catm("note: using", kind, "builtin stopwords, but beware that one size may not fit all.\n")
     # data(stopwords, envir = environment())
     quanteda::.stopwords[[kind]]
 }
@@ -60,16 +60,14 @@ NULL
 
 
 
-# @rdname removeFeatures
-# @export
-stopwordsRemove <- function(x, stopwords=NULL, verbose=TRUE) {
+# @rdname removeFeatures @export
+stopwordsRemove <- function(x, stopwords = NULL, verbose = TRUE) {
     catm("stopwordsRemove is deprecated, use removeFeatures instead.")
     UseMethod("removeFeatures")
 }
 
-# @rdname stopwords
-# @export
-stopwordsGet <- function(kind="english") {
+# @rdname stopwords @export
+stopwordsGet <- function(kind = "english") {
     catm("stopwordsGet() is deprecated, use stopwords() instead.\n")
     stopwords(kind)
 }

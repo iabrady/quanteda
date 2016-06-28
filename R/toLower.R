@@ -12,8 +12,8 @@
 #'   tokenized texts.
 #' @export
 #' @examples 
-#' test1 <- c(text1 = "England and France are members of NATO and UNESCO", 
-#'            text2 = "NASA sent a rocket into space.")
+#' test1 <- c(text1 = 'England and France are members of NATO and UNESCO', 
+#'            text2 = 'NASA sent a rocket into space.')
 #' toLower(test1)
 #' toLower(test1, keepAcronyms = TRUE)
 #' 
@@ -28,14 +28,14 @@ toLower <- function(x, keepAcronyms = FALSE, ...) {
 #' @export
 toLower.character <- function(x, keepAcronyms = FALSE, ...) {
     savedNames <- names(x)
-    if (keepAcronyms)
-        x <- stri_replace_all_regex(x, "\\b(\\p{Uppercase_Letter}{2,})\\b",  "_$1_", ...)
+    if (keepAcronyms) 
+        x <- stri_replace_all_regex(x, "\\b(\\p{Uppercase_Letter}{2,})\\b", "_$1_", ...)
     x <- stri_trans_tolower(x, ...)
     if (keepAcronyms) {
         m1 <- unique(unlist(stri_extract_all_regex(x, "\\b_\\p{Lowercase_Letter}+_\\b", omit_no_match = TRUE, ...)))
         if (length(m1) > 0) {
             m2 <- stri_replace_all_fixed(stri_trans_toupper(m1, ...), "_", "", ...)
-            x <- sapply(x, function(s) stri_replace_all_regex(s, m1,  m2, vectorize_all = FALSE, ...))
+            x <- sapply(x, function(s) stri_replace_all_regex(s, m1, m2, vectorize_all = FALSE, ...))
         }
     }
     names(x) <- savedNames
@@ -63,15 +63,15 @@ toLower.tokenizedTexts <- function(x, keepAcronyms = FALSE, ...) {
 
 #' @rdname toLower
 #' @export
-toLower.corpus <- function(x, keepAcronyms=FALSE, ...) {
+toLower.corpus <- function(x, keepAcronyms = FALSE, ...) {
     toLower(texts(x), keepAcronyms, ...)
 }
 
 #' @rdname toLower
 #' @export
 #' @examples 
-#' test1 <- c(text1 = "England and France are members of NATO and UNESCO", 
-#'            text2 = "NASA sent a rocket into space.")
+#' test1 <- c(text1 = 'England and France are members of NATO and UNESCO', 
+#'            text2 = 'NASA sent a rocket into space.')
 #' toUpper(test1)
 #' 
 #' test2 <- tokenize(test1, removePunct = TRUE)

@@ -24,7 +24,7 @@
 #' @export
 #' @examples
 #' #' Simple example
-#' wordstem(c("win", "winning", "wins", "won", "winner"))
+#' wordstem(c('win', 'winning', 'wins', 'won', 'winner'))
 wordstem <- function(x, language = "porter") {
     UseMethod("wordstem")
 }
@@ -33,30 +33,25 @@ wordstem <- function(x, language = "porter") {
 #' @import stringi 
 #' @export
 wordstem.character <- function(x, language = "porter") {
-    if (any(stringi::stri_detect_fixed(x, " ") & !is.na(x)))
+    if (any(stringi::stri_detect_fixed(x, " ") & !is.na(x))) 
         stop("whitespace detected: you can only stem tokenized texts")
     result <- SnowballC::wordStem(x, language)
     result[which(is.na(x))] <- NA
     result
 }
 
-# 
-# toks <- unlist(tokenize(toLower(inaugTexts[1:5]), removePunct = TRUE, removeNumbers = TRUE), use.names = FALSE)
-# microbenchmark(wordstem(toks), 
-#                wordstemP(toks),
-#                simplify2array(parallel::mclapply(toks, wordstem, language=language)))
+# toks <- unlist(tokenize(toLower(inaugTexts[1:5]), removePunct = TRUE, removeNumbers = TRUE), use.names = FALSE) microbenchmark(wordstem(toks), wordstemP(toks), simplify2array(parallel::mclapply(toks, wordstem, language=language)))
 
 #' @rdname wordstem
 #' @import stringi 
 #' @export
 wordstem.tokenizedTexts <- function(x, language = "porter") {
     origAttrs <- attributes(x)
-    if (!grepl("word", attr(x, "what")) || any(unlist(lapply(x, function(y) stringi::stri_detect_fixed(y, " ") & !is.na(y)))))
+    if (!grepl("word", attr(x, "what")) || any(unlist(lapply(x, function(y) stringi::stri_detect_fixed(y, " ") & !is.na(y))))) 
         stop("whitespace detected: you can only stem word-tokenized texts")
-    if (all.equal(attributes(x)$ngrams, 1))
-        result <- lapply(x, SnowballC::wordStem, language)
-    else {
-        # catm("Ngrams wordstem\n")
+    if (all.equal(attributes(x)$ngrams, 1)) 
+        result <- lapply(x, SnowballC::wordStem, language) else {
+        # catm('Ngrams wordstem\n')
         result <- wordstem_Ngrams(x, attributes(x)$concatenator, language)
     }
     class(result) <- c("tokenizedTexts", class(result))
@@ -72,21 +67,13 @@ wordstem_Ngrams <- function(x, concatenator, language) {
     result <- lapply(result, function(y) lapply(y, SnowballC::wordStem, language = language))
     result <- lapply(result, function(y) sapply(y, paste, collapse = concatenator))
     # simple way to return a character vector if supplied a character vector
-    if (!is.list(x)) result <- unlist(result)
+    if (!is.list(x)) 
+        result <- unlist(result)
     result
 }
 
-# txt <- "women people like men feminism just gt feminist feminists think"
-# wordstem(tokenize(txt))
-## tokenizedText object from 1 document.
-## Component 1 :
-##  [1] "women"    "peopl"    "like"     "men"      "femin"    "just"     "gt"       "feminist" "feminist" "think"   
-# dfm(txt, stem = TRUE, verbose = FALSE)
-# Document-feature matrix of: 1 document, 9 features.
-# 1 x 9 sparse Matrix of class "dfmSparse"
-#        features
-# docs    women peopl like men femin just gt feminist think
-#   text1     1     1    1   1     1    1  1        2     1
+# txt <- 'women people like men feminism just gt feminist feminists think' wordstem(tokenize(txt)) tokenizedText object from 1 document.  Component 1 : [1] 'women' 'peopl' 'like' 'men' 'femin' 'just' 'gt' 'feminist' 'feminist' 'think' dfm(txt, stem = TRUE, verbose = FALSE) Document-feature
+# matrix of: 1 document, 9 features.  1 x 9 sparse Matrix of class 'dfmSparse' features docs women peopl like men femin just gt feminist think text1 1 1 1 1 1 1 1 2 1
 
 
 
@@ -95,85 +82,34 @@ wordstem_Ngrams <- function(x, concatenator, language) {
 #' @export
 wordstem.dfm <- function(x, language = "porter") {
     # triplet representation, so we can get j index
-
+    
     # add on a dummy column to make sure no zero-feature documents get dropped
-    x <- cbind(x, 
-               new("dfmSparse", sparseMatrix(i = 1:ndoc(x), j = rep(1, ndoc(x)), x = 1,
-                                             dimnames = list(docs = docnames(x), features = "_YYYYY_"))))
+    x <- cbind(x, new("dfmSparse", sparseMatrix(i = 1:ndoc(x), j = rep(1, ndoc(x)), x = 1, dimnames = list(docs = docnames(x), features = "_YYYYY_"))))
     # add on a dummy document to make sure no zero-docfreq features get dropped
-    x <- rbind(x,
-               new("dfmSparse", sparseMatrix(i = rep(1, nfeature(x)), j = 1:nfeature(x), x = 1,
-                                             dimnames = list(docs = "_XXXXX_", features = features(x)))))
-
+    x <- rbind(x, new("dfmSparse", sparseMatrix(i = rep(1, nfeature(x)), j = 1:nfeature(x), x = 1, dimnames = list(docs = "_XXXXX_", features = features(x)))))
+    
     j <- as(x, "TsparseMatrix")@j + 1
-
+    
     oldFeatures <- features(x)[j]
     if (identical(as.integer(x@ngrams), 1L)) 
-        oldFeaturesStemmed <- wordstem(oldFeatures, language)
-    else
-        oldFeaturesStemmed <- wordstem_Ngrams(oldFeatures, x@concatenator, language)
+        oldFeaturesStemmed <- wordstem(oldFeatures, language) else oldFeaturesStemmed <- wordstem_Ngrams(oldFeatures, x@concatenator, language)
     newFeatures <- unique(oldFeaturesStemmed)
     newFeatureIndex <- match(oldFeaturesStemmed, newFeatures)
-
-    result <- sparseMatrix(i = x@i + 1, 
-                           j = newFeatureIndex,
-                           x = x@x, 
-                           dimnames = list(docs = docnames(x), 
-                                           features = newFeatures))
+    
+    result <- sparseMatrix(i = x@i + 1, j = newFeatureIndex, x = x@x, dimnames = list(docs = docnames(x), features = newFeatures))
     new("dfmSparse", result)[-nrow(result), -ncol(result)]
 }
 
 
-# wordstem2 <- function(x, language = "porter") {
-#     
-#     dt <- data.table(stemmedFeatures = wordstem(rep(features(x), each = ndoc(x)), language),
-#                      docIndex = rep(1:ndoc(x), nfeature(x)),
-#                      counts = as.vector(x))
-#     setkey(dt, docIndex, stemmedFeatures)
-#     dt <- dt[, list(newCounts = sum(counts)), by = list(docIndex, stemmedFeatures)]
-#     
-#     newFeatures <- unique(dt, by = "stemmedFeatures")[, stemmedFeatures]
-#     
-#     result <- sparseMatrix(i = dt$docIndex,
-#                            j = rep(1:length(newFeatures), each = ndoc(x)),
-#                            x = dt$newCounts, 
-#                            dimnames=list(docs = docnames(x), 
-#                                          features = newFeatures))
-#     new("dfmSparse", result)
-# }
-# 
+# wordstem2 <- function(x, language = 'porter') { dt <- data.table(stemmedFeatures = wordstem(rep(features(x), each = ndoc(x)), language), docIndex = rep(1:ndoc(x), nfeature(x)), counts = as.vector(x)) setkey(dt, docIndex, stemmedFeatures) dt <- dt[, list(newCounts = sum(counts)), by =
+# list(docIndex, stemmedFeatures)] newFeatures <- unique(dt, by = 'stemmedFeatures')[, stemmedFeatures] result <- sparseMatrix(i = dt$docIndex, j = rep(1:length(newFeatures), each = ndoc(x)), x = dt$newCounts, dimnames=list(docs = docnames(x), features = newFeatures)) new('dfmSparse',
+# result) }
 
 
-# testText <- c("Dog runs, dogs run, and doggy is running.", 
-#               "The running man likes to run.")
-# xtoks <- tokenize(toLower(testText), removePunct = TRUE)
-# (xdfm <- dfmNew(xtoks))
-# wordstem(x)
-# microbenchmark::microbenchmark(dfmNew(wordstem(xtoks), toLower = FALSE, verbose = FALSE), 
-#                                wordstem(xdfm), 
-#                                wordstem2(xdfm))
+# testText <- c('Dog runs, dogs run, and doggy is running.', 'The running man likes to run.') xtoks <- tokenize(toLower(testText), removePunct = TRUE) (xdfm <- dfmNew(xtoks)) wordstem(x) microbenchmark::microbenchmark(dfmNew(wordstem(xtoks), toLower = FALSE, verbose = FALSE), wordstem(xdfm),
+# wordstem2(xdfm))
 
 
-# FOR LEMMATIZATION:
-# (see http://stackoverflow.com/questions/22993796/lemmatizer-in-r-or-python-am-are-is-be/22994954#22994954)
-#     
-#     lemmatize <- function(wordlist) {
-#         get.lemma <- function(word, url) {
-#             response <- GET(url,query=list(spelling=word,standardize="",
-#                                            wordClass="",wordClass2="",
-#                                            corpusConfig="ncf",    # Nineteenth Century Fiction
-#                                            media="xml"))
-#             content <- content(response,type="text")
-#             xml     <- xmlInternalTreeParse(content)
-#             return(xmlValue(xml["//lemma"][[1]]))    
-#         }
-#         require(httr)
-#         require(XML)
-#         url <- "http://devadorner.northwestern.edu/maserver/lemmatizer"
-#         return(sapply(wordlist,get.lemma,url=url))
-#     }
-# 
-# words <- c("is","am","was","are")
-# lemmatize(words)
-# #   is   am  was  are 
-# # "be" "be" "be" "be" 
+# FOR LEMMATIZATION: (see http://stackoverflow.com/questions/22993796/lemmatizer-in-r-or-python-am-are-is-be/22994954#22994954) lemmatize <- function(wordlist) { get.lemma <- function(word, url) { response <- GET(url,query=list(spelling=word,standardize='', wordClass='',wordClass2='',
+# corpusConfig='ncf', # Nineteenth Century Fiction media='xml')) content <- content(response,type='text') xml <- xmlInternalTreeParse(content) return(xmlValue(xml['//lemma'][[1]])) } require(httr) require(XML) url <- 'http://devadorner.northwestern.edu/maserver/lemmatizer'
+# return(sapply(wordlist,get.lemma,url=url)) } words <- c('is','am','was','are') lemmatize(words) # is am was are # 'be' 'be' 'be' 'be'

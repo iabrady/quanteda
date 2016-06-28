@@ -33,7 +33,7 @@ NULL
 #' @format A named character vector of plain ASCII texts
 #' @examples
 #' ukimmigCorpus <- corpus(ukimmigTexts, docvars=data.frame(party=names(ukimmigTexts)))
-#' metadoc(ukimmigCorpus, "language") <- "english"
+#' metadoc(ukimmigCorpus, 'language') <- 'english'
 #' summary(ukimmigCorpus, showmeta = TRUE)
 NULL
 
@@ -57,8 +57,8 @@ NULL
 #'   raw text score of approximately -0.45 when computed as per LBG (2003).
 #' @format A \link{dfm} object with 6 documents and 37 features
 #' @references Laver, Michael, Kenneth Benoit, and John Garry.  2003.
-#'   "\href{http://www.kenbenoit.net/pdfs/WORDSCORESAPSR.pdf}{Estimating policy
-#'   positions from political text using words as data.}" \emph{American Political
+#'   '\href{http://www.kenbenoit.net/pdfs/WORDSCORESAPSR.pdf}{Estimating policy
+#'   positions from political text using words as data.}' \emph{American Political
 #'   Science Review} 97(2): 311-331.
 NULL
 
@@ -70,24 +70,16 @@ NULL
 #' @format The corpus object for the 2010 budget speeches, with document-level 
 #'   variables for year, debate, serial number, first and last name of the 
 #'   speaker, and the speaker's party.
-#' @source Lowe, Will, and Kenneth R Benoit. 2013. "Validating Estimates of
-#'   Latent Traits From Textual Data Using Human Judgment as a Benchmark."
+#' @source Lowe, Will, and Kenneth R Benoit. 2013. 'Validating Estimates of
+#'   Latent Traits From Textual Data Using Human Judgment as a Benchmark.'
 #'   \emph{Political Analysis} 21: 298-313.
 #' @docType data
 #' @examples
 #' summary(ie2010Corpus)
 NULL
 
-# data(ie2010Corpus, package="quantedaData")
-# txts <- texts(ie2010Corpus)
-# for (i in 1:length(txts)) {
-#     temptxt <- system2("native2ascii", input = txts[i], stdout = TRUE)
-#     temptxt[temptxt==""] <- "\n"
-#     temptxt <- paste(temptxt, collapse="")
-#     txts[i] <- temptxt
-# }
-# texts(ie2010Corpus) <- txts
-# save(ie2010Corpus, file="data/ie2010Corpus.RData")
+# data(ie2010Corpus, package='quantedaData') txts <- texts(ie2010Corpus) for (i in 1:length(txts)) { temptxt <- system2('native2ascii', input = txts[i], stdout = TRUE) temptxt[temptxt==''] <- '\n' temptxt <- paste(temptxt, collapse='') txts[i] <- temptxt } texts(ie2010Corpus) <- txts
+# save(ie2010Corpus, file='data/ie2010Corpus.RData')
 
 #' @name exampleString
 #' @title A paragraph of text for testing various text-based functions
@@ -118,22 +110,13 @@ NULL
 #' @references 
 #' Chall, J. S., & Dale, E.  1995. \emph{Readability Revisited: The New Dale-Chall Readability Formula}. Brookline Books.
 #' 
-#' Klare, G. R. 1975. "Assessing readability." \emph{Reading Research Quarterly} 10(1): 62–102.
+#' Klare, G. R. 1975. 'Assessing readability.' \emph{Reading Research Quarterly} 10(1): 62–102.
 #' 
-#' Spache, G. 1953. "A new readability formula for primary-grade reading materials." \emph{The Elementary School Journal} 53: 410-413.
+#' Spache, G. 1953. 'A new readability formula for primary-grade reading materials.' \emph{The Elementary School Journal} 53: 410-413.
 #' @docType data
 NULL
-# makeWordList <- function(filename) {
-#     wordList <- textfile(filename, cache = FALSE)@texts
-#     wordList <- stringi::stri_replace_all_regex(wordList, "-", "_")
-#     wordList <- tokenize(wordList, simplify = TRUE)
-#     wordList <- stringi::stri_replace_all_regex(wordList, "_", "-")
-#     wordList
-# }
-# dalechall    <- makeWordList("~/Dropbox/QUANTESS/quanteda_working_files/readability/Dale-Chall.txt")
-# spache    <- makeWordList("~/Dropbox/QUANTESS/quanteda_working_files/readability/Spache.txt")
-# wordlists <- list(dalechall = dalechall, spache = spache)
-# save(wordlists, file = "data/wordlists.RData")
+# makeWordList <- function(filename) { wordList <- textfile(filename, cache = FALSE)@texts wordList <- stringi::stri_replace_all_regex(wordList, '-', '_') wordList <- tokenize(wordList, simplify = TRUE) wordList <- stringi::stri_replace_all_regex(wordList, '_', '-') wordList } dalechall <-
+# makeWordList('~/Dropbox/QUANTESS/quanteda_working_files/readability/Dale-Chall.txt') spache <- makeWordList('~/Dropbox/QUANTESS/quanteda_working_files/readability/Spache.txt') wordlists <- list(dalechall = dalechall, spache = spache) save(wordlists, file = 'data/wordlists.RData')
 
 
 #' @name encodedTextFiles
@@ -147,40 +130,40 @@ NULL
 #' @examples
 #' \dontrun{# unzip the files to a temporary directory
 #' FILEDIR <- tempdir()
-#' unzip(system.file("extdata", "encodedTextFiles.zip", package = "quanteda"), exdir = FILEDIR)
+#' unzip(system.file('extdata', 'encodedTextFiles.zip', package = 'quanteda'), exdir = FILEDIR)
 #' 
 #' # get encoding from filename
-#' filenames <- list.files(FILEDIR, "\\.txt$")
+#' filenames <- list.files(FILEDIR, '\\.txt$')
 #' # strip the extension
-#' filenames <- gsub(".txt$", "", filenames)
-#' parts <- strsplit(filenames, "_")
-#' fileencodings <- sapply(parts, "[", 3)
+#' filenames <- gsub('.txt$', '', filenames)
+#' parts <- strsplit(filenames, '_')
+#' fileencodings <- sapply(parts, '[', 3)
 #' fileencodings
 #' 
 #' # find out which conversions are unavailable (through iconv())
-#' cat("Encoding conversions not available for this platform:")
+#' cat('Encoding conversions not available for this platform:')
 #' notAvailableIndex <- which(!(fileencodings %in% iconvlist()))
 #' fileencodings[notAvailableIndex]
 #' 
 #' # try textfile
 #' require(quanteda)
-#' tfile <- textfile(paste0(FILEDIR, "/", "*.txt"))
+#' tfile <- textfile(paste0(FILEDIR, '/', '*.txt'))
 #' substring(texts(tfile)[1], 1, 80) # gibberish
 #' substring(texts(tfile)[4], 1, 80) # hex
 #' substring(texts(tfile)[40], 1, 80) # hex
 #' 
 #' # read them in again
-#' tfile <- textfile(paste0(FILEDIR,  "/", "*.txt"), encoding = fileencodings)
+#' tfile <- textfile(paste0(FILEDIR,  '/', '*.txt'), encoding = fileencodings)
 #' substring(texts(tfile)[1], 1, 80)  # English
 #' substring(texts(tfile)[4], 1, 80)  # Arabic, looking good 
 #' substring(texts(tfile)[40], 1, 80) # Cyrillic, looking good
 #' substring(texts(tfile)[7], 1, 80)  # Chinese, looking good
 #' substring(texts(tfile)[26], 1, 80) # Hindi, looking good
 #' 
-#' tfile <- textfile(paste0(FILEDIR, "/", "*.txt"), encoding = fileencodings,
-#'                   docvarsfrom = "filenames", 
-#'                   docvarnames = c("document", "language", "inputEncoding"))
-#' encodingCorpus <- corpus(tfile, source = "Created by encoding-tests.R") 
+#' tfile <- textfile(paste0(FILEDIR, '/', '*.txt'), encoding = fileencodings,
+#'                   docvarsfrom = 'filenames', 
+#'                   docvarnames = c('document', 'language', 'inputEncoding'))
+#' encodingCorpus <- corpus(tfile, source = 'Created by encoding-tests.R') 
 #' summary(encodingCorpus)
 #' }
 NULL

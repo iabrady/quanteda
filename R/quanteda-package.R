@@ -42,15 +42,15 @@
 #'   implements common NLP feature selection functions, such as removing
 #'   stopwords and stemming in numerous languages, selecting words found in
 #'   dictionaries, treating words as equivalent based on a user-defined
-#'   "thesaurus", and trimming and weighting features based on document
+#'   'thesaurus', and trimming and weighting features based on document
 #'   frequency, feature frequency, and related measures such as tf-idf.
 #'   
-#'   Once constructed, a \pkg{quanteda} "\link{dfm}"" can be easily analyzed using
+#'   Once constructed, a \pkg{quanteda} '\link{dfm}'' can be easily analyzed using
 #'   either \pkg{quanteda}'s built-in tools for scaling document positions,
 #'   or used with a number of other text analytic tools, such as: topic models
 #'   (including converters for direct use with the topicmodels, LDA, and stm
 #'   packages) document scaling (using \pkg{quanteda}'s own functions for the
-#'   "wordfish" and "Wordscores" models, direct use with the ca package for
+#'   'wordfish' and 'Wordscores' models, direct use with the ca package for
 #'   correspondence analysis, or scaling with the austin package) machine
 #'   learning through a variety of other packages that take matrix or
 #'   matrix-like inputs.
