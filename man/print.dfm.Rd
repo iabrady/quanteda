@@ -2,14 +2,14 @@
 % Please edit documentation in R/dfm-classes.R, R/fcm.R
 \docType{methods}
 \name{print.dfm}
+\alias{print,cfm-method}
 \alias{print,dfm-method}
 \alias{print,dfmDense-method}
 \alias{print,dfmSparse-method}
-\alias{print,fcm-method}
 \alias{print.dfm}
+\alias{show,cfm-method}
 \alias{show,dfmDense-method}
 \alias{show,dfmSparse-method}
-\alias{show,fcm-method}
 \title{print a dfm object}
 \usage{
 \S4method{print}{dfm}(x, show.values = FALSE, show.settings = FALSE,
@@ -28,10 +28,10 @@
 \method{print}{dfm}(x, show.values = FALSE, show.settings = FALSE,
   show.summary = TRUE, ndoc = 20L, nfeature = 20L, ...)
 
-\S4method{print}{fcm}(x, show.values = FALSE, show.settings = FALSE,
+\S4method{print}{cfm}(x, show.values = FALSE, show.settings = FALSE,
   show.summary = TRUE, nfeature = 20L, ...)
 
-\S4method{show}{fcm}(object)
+\S4method{show}{cfm}(object)
 }
 \arguments{
 \item{x}{the dfm to be printed}
