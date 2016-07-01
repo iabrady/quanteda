@@ -17,7 +17,7 @@ dfm(x, ...)
   keptFeatures = NULL, language = "english", thesaurus = NULL,
   dictionary = NULL, valuetype = c("glob", "regex", "fixed"), ...)
 
-\method{dfm}{tokenizedTexts}(x, verbose = TRUE, toLower = TRUE,
+\method{dfm}{tokenizedTexts}(x, verbose = TRUE, toLower = FALSE,
   stem = FALSE, ignoredFeatures = NULL, keptFeatures = NULL,
   language = "english", thesaurus = NULL, dictionary = NULL,
   valuetype = c("glob", "regex", "fixed"), ...)
@@ -169,7 +169,7 @@ features(dfm(testCorpus, ngrams = 1:2, ignoredFeatures = stopwords("english")))
 tokensAll <- tokenize(toLower(testText), removePunct = TRUE)
 tokensNoStopwords <- removeFeatures(tokensAll, stopwords("english"))
 tokensNgramsNoStopwords <- ngrams(tokensNoStopwords, 2)
-features(dfm(tokensNgramsNoStopwords, ngrams = 1:2))
+features(dfm(tokensNgramsNoStopwords, verbose = FALSE))
 
 # keep only certain words
 dfm(testCorpus, keptFeatures = "*s", verbose = FALSE)  # keep only words ending in "s"
@@ -181,7 +181,6 @@ testTweets <- c("My homie @justinbieber #justinbieber shopping in #LA yesterday 
                 "Justin Bieber #justinbieber #belieber #fetusjustin #EMABiggestFansJustinBieber")
 dfm(testTweets, keptFeatures = "#*", removeTwitter = FALSE)  # keep only hashtags
 dfm(testTweets, keptFeatures = "^#.*$", valuetype = "regex", removeTwitter = FALSE)
-
 }
 \author{
 Kenneth Benoit

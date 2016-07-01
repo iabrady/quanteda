@@ -1,15 +1,45 @@
-quanteda >= 0.9.6-3
-===================
+quanteda 0.9.7
+==============
 
-Enhancements
-------------  
-*  `dictionary(file = "liwc_formatted_dict.dic", format = "LIWC")` now handles poorly formatted dictionary files better, such as the Moral Foundations Dictionary in the examples for `?dictionary`.
+## New Features
 
-Bug fixes
----------  
-*  Fix bug in phrasetotoken, signature 'corpus,ANY' that was causing an infinite loop.
+*  Improved the performance of `selectFeatures.tokenizedTexts()`.  
+*  Improved the performance of `rbind.dfm()`.  
+*  Added support for different docvars when importing multiple files using `textfile()`.  (#147)  
+*  Added support for comparison dispersion plots in `plot.kwic()`. (#146)  
+*  Added a corpus constructor method for kwic objects.  
+*  Substantially improved the performance of `convert(x, to = "stm")` for dfm export, including adding an argument for meta-data (docvars, in quanteda parlance). (#209)  
+*  Internal rewrite of `textfile()`, now supports more file types, more wildcard patterns, and is far more robust generally.  
+*  Add support for loading external dictionary formats: 
+  - yoshikoder, 
+  - lexicoder v2 and v3 (#228)
+* Autodetect dictionary file format from file extension, so no longer require `format` keyword for loading dictionaries (#227)
+* Improved compatibility with rOpenSci guidelines (#218):
+  - Use httr to get remote files
+  - Use `messages()` to display messages rather than `print` or `cat`
+  - Reorganise sections in README file  
+* Added new `punctuation` argument to `collocations()` to provide new options for handling collocations separated by punctuation characters (#220).
 
-*  Fixed bug introduced in commit b88287f (0.9.5-26) that caused a failure in dfm() with empty (zero-token) documents.  Also fixes Issue #168.
+
+## Bug fixes
+
+*  Fixed bug in textfile() where source is a remote .zip set.  (#172)  
+*  Fixed bug in wordstem.dfm() that caused an error if supplied a dfm with a feature whose total frequency
+   count was zero, or with a feature whose total docfreq was zero.  Fixes #181.  
+*  Fix #214 "mysterious stemmed token" bug in `wordstem.dfm()`, introduced in fixing #181.  
+*  Fixed previously non-functional `toLower = ` argument in `dfm.tokenizedTexts()`.
+*  Fixed some errors in the computation of a few readability formulas (#215).
+* Added filenames names to text vectors returned by `textfile` (#221).
+* `dictionary()` now works correctly when reading LIWC dictionaries where all terms belong to one key (#229).
+* `convert(x, to = "stm") now indexes the dfm components from 1, not 0 (#222).
+*  Remove temporary stemmed token (#214).
+
+## Changes
+
+*  Added `warn = FALSE` to the `readLines()` calls in `textfile()`, so that no warnings are issued when files are read that are missing a final EOL or that contain  embedded nuls.
+* `trim()` now prints an output message even when no features are removed (#223)
+* We now skip some platform-dependent tests on CRAN, travis-ci and Windows.
+
 
 
 quanteda 0.9.6 
@@ -64,6 +94,21 @@ quanteda 0.9.6
 *  Fixed bug in `predict.fitted_textmodel_NB()` that caused a failure with k > 2 classes (#129)
 
 *  Improved `dfm.tokenizedTexts()` performance by taking care of zero-token documents more efficiently.
+
+*  `dictionary(file = "liwc_formatted_dict.dic", format = "LIWC")` now handles poorly formatted dictionary files better, such as the Moral Foundations Dictionary in the examples for `?dictionary`.
+
+*  added `as.tokenizedTexts` to coerce any list of characters to a tokenizedTexts object.
+
+
+Bug fixes >= 0.9.6-3
+--------------------    
+*  Fix bug in phrasetotoken, signature 'corpus,ANY' that was causing an infinite loop.
+
+*  Fixed bug introduced in commit b88287f (0.9.5-26) that caused a failure in dfm() with empty (zero-token) documents.  Also fixes Issue #168.
+
+*  Fixed bug that caused dfm() to break if no features or only one feature was found.
+
+*  Fixed bug in predict.fitted_textmodel_NB() that caused a failure with k > 2 classes (#129)
 
 Bug fixes
 ---------

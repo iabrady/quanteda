@@ -56,7 +56,7 @@ wordstem.tokenizedTexts <- function(x, language = "porter") {
     if (all.equal(attributes(x)$ngrams, 1))
         result <- lapply(x, SnowballC::wordStem, language)
     else {
-        # cat("Ngrams wordstem\n")
+        # catm("Ngrams wordstem\n")
         result <- wordstem_Ngrams(x, attributes(x)$concatenator, language)
     }
     class(result) <- c("tokenizedTexts", class(result))
@@ -95,6 +95,16 @@ wordstem_Ngrams <- function(x, concatenator, language) {
 #' @export
 wordstem.dfm <- function(x, language = "porter") {
     # triplet representation, so we can get j index
+
+    # add on a dummy column to make sure no zero-feature documents get dropped
+    x <- cbind(x, 
+               new("dfmSparse", sparseMatrix(i = 1:ndoc(x), j = rep(1, ndoc(x)), x = 1,
+                                             dimnames = list(docs = docnames(x), features = "_YYYYY_"))))
+    # add on a dummy document to make sure no zero-docfreq features get dropped
+    x <- rbind(x,
+               new("dfmSparse", sparseMatrix(i = rep(1, nfeature(x)), j = 1:nfeature(x), x = 1,
+                                             dimnames = list(docs = "_XXXXX_", features = features(x)))))
+
     j <- as(x, "TsparseMatrix")@j + 1
 
     oldFeatures <- features(x)[j]
@@ -110,7 +120,7 @@ wordstem.dfm <- function(x, language = "porter") {
                            x = x@x, 
                            dimnames = list(docs = docnames(x), 
                                            features = newFeatures))
-    new("dfmSparse", result)
+    new("dfmSparse", result)[-nrow(result), -ncol(result)]
 }
 
 
