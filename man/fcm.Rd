@@ -18,7 +18,8 @@ fcm(x, ...)
 
 \method{fcm}{character}(x, ...)
 
-fcm2.tokenizedTexts(x, context = c("document", "window"), window = 5L)
+fcm2.tokenizedTexts(x, context = c("document", "window"), window = 5L,
+  verbose = FALSE)
 }
 \arguments{
 \item{x}{character vector, corpus, or tokenized texts from which to generate
@@ -46,14 +47,7 @@ sentences}
 
 \item{tri}{if \code{TRUE} return only upper triangle (including diagonal)}
 
-\item{context}{the context in which to consider term co-occurrence: 
-\code{"document"} for co-occurrence counts within document; \code{"window"}
-for co-occurrence within a defined window of words, which requires a 
-postive integer value for \code{window}}
-
-\item{window}{positive integer value for the size of a window on either side 
-of the target feature, default is 5, meaning 5 words before and after the 
-target feature}
+\item{verbose}{if \code{TRUE} print status messages to the console}
 }
 \description{
 Create a sparse feature co-occurrence matrix within a user-defined context. 
@@ -79,5 +73,6 @@ txt <- c("The quick brown fox jumped over the lazy dog.",
          "The dog jumped and ate the fox.")
 toks <- tokenize(toLower(txt), removePunct = TRUE)
 fcm2.tokenizedTexts(toks, context = "window", window = 3)
+fcm2.tokenizedTexts(list(letters), context = "window", window = 3)
 }
 

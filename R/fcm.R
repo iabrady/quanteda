@@ -48,6 +48,7 @@ fcm <- function(x, ...) {
 #' @param spanSentence if \code{FALSE}, then word windows will not span
 #'   sentences
 #' @param tri if \code{TRUE} return only upper triangle (including diagonal)
+#' @param verbose if \code{TRUE} print status messages to the console
 #' @examples
 #' (txts <- c(paste(letters[c(1, 1:3)], collapse = " "), 
 #'            paste(letters[c(1, 3, 5)], collapse = " "), 
@@ -158,13 +159,6 @@ setMethod("show", signature(object = "fcm"), function(object) print(object))
 
 #' C++ version of fcm
 #' @rdname fcm
-#' @param context the context in which to consider term co-occurrence: 
-#'   \code{"document"} for co-occurrence counts within document; \code{"window"}
-#'   for co-occurrence within a defined window of words, which requires a 
-#'   postive integer value for \code{window}
-#' @param window positive integer value for the size of a window on either side 
-#'   of the target feature, default is 5, meaning 5 words before and after the 
-#'   target feature
 #' @examples
 #' txt <- c("The quick brown fox jumped over the lazy dog.",
 #'          "The dog jumped and ate the fox.")
@@ -181,7 +175,7 @@ fcm2.tokenizedTexts <- function(x, context = c("document", "window"), window = 5
   n <- sum(lengths(x)) * window * 2
   y <- fcm_cpp(x, types, window, n)
   
-  if(verbose) cat("Making sparseMatrix\n")
+  if (verbose) message("Making sparseMatrix\n")
   mx <- Matrix::sparseMatrix(i = y$target, 
                              j = y$collocate, 
                              x = 1L,

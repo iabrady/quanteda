@@ -18,23 +18,23 @@ using namespace Rcpp;
 List fcm_cpp(List &texts,
              const CharacterVector &types,
              const int &window,
-             const int &n){
+             const int &n) {
   
   IntegerVector index_tgt(n);
   IntegerVector index_col(n);
   std::unordered_map<String, int> id;
-  for (int g = 0; g < types.size(); g++){
+  for (int g = 0; g < types.size(); g++) {
     id[types[g]] = g + 1;
   }
   int k = 0;
-  for (int h = 0; h < texts.size(); h++){
+  for (int h = 0; h < texts.size(); h++) {
     StringVector text = texts[h];
     int len = text.size();
-    for (int i = 0; i < text.size(); i++){
+    for (int i = 0; i < text.size(); i++) {
       int id_i = id[text[i]];
       int j_int = std::max(0, i - window);
       int j_lim = std::min(i + window + 1, len);
-      for(int j = j_int; j < j_lim; j++){
+      for(int j = j_int; j < j_lim; j++) {
         if(i==j) continue;
         int id_j = id[text[j]];
         //Rcout << k << " " << id_i << " " << id_j << "\n";
