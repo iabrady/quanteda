@@ -1,4 +1,6 @@
-#' Virtual class "cfm" for a context-feature matrix
+#' @include dfm-classes.R
+
+#' @title Virtual class "cfm" for a context-feature matrix
 #' 
 #' @description The cfm class of object is a special type of \link{dfm-class}.
 #'   
@@ -30,7 +32,6 @@ setClass("cfm",
 #' @author Kenneth Benoit (R) and Kohei Watanabe (C++)
 #' @import Matrix
 #' @export
-#' @name cfm
 cfm <- function(x, ...) {
     UseMethod("cfm")
 }
