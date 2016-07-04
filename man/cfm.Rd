@@ -52,15 +52,12 @@ defined as a document or a window within a collection of documents, with an
 optional vector of weights applied to the co-occurrence counts.
 }
 \examples{
-# see 
+# see http://bit.ly/29b2zOA
 txt <- "A D C E A D F E B A C E D"
 cfm(txt, context = "window", window = 2)
 
-(txts <- c(paste(letters[c(1, 1:3)], collapse = " "), 
-           paste(letters[c(1, 3, 5)], collapse = " "), 
-           paste(letters[c(5, 6, 7)], collapse = " ")))
-toks <- tokenize(toLower(txts), removePunct = TRUE)
-cfm(toks, context = "document")
+txts <- c("a a b b c", "a c e", "e f g")
+cfm(txts, context = "document")
 
 txt <- c("The quick brown fox jumped over the lazy dog.",
          "The dog jumped and ate the fox.")

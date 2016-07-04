@@ -51,15 +51,12 @@ cfm <- function(x, ...) {
 #' @param tri if \code{TRUE} return only upper triangle (including diagonal)
 #' @param verbose if \code{TRUE} print status messages to the console
 #' @examples
-#' # see 
-#' txt <- "A D C E A D F E B A C E D"
+#' # see http://bit.ly/29b2zOA
+#' txt <- "A D A C E A D F E B A C E D"
 #' cfm(txt, context = "window", window = 2)
 #' 
-#' (txts <- c(paste(letters[c(1, 1:3)], collapse = " "), 
-#'            paste(letters[c(1, 3, 5)], collapse = " "), 
-#'            paste(letters[c(5, 6, 7)], collapse = " ")))
-#' toks <- tokenize(toLower(txts), removePunct = TRUE)
-#' cfm(toks, context = "document")
+#' txts <- c("a a b b c", "a c e", "e f g")
+#' cfm(txts, context = "document")
 #' 
 #' txt <- c("The quick brown fox jumped over the lazy dog.",
 #'          "The dog jumped and ate the fox.")
@@ -82,22 +79,22 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"), window = 5L
     
     if (context == "document") {
         
-        window <- max(lengths(x))
-    }        
-        # x <- tf(dfm(x, toLower = FALSE, verbose = FALSE), "boolean")
-        # # get co-occurrence counts
-        # result <- t(x) %*% x
-        # # remove 1 from the diagonal so that target features are not counted as their own context
-        # # Matrix::diag(result) <- ifelse(Matrix::diag(result) > 0, Matrix::diag(result) - 1, 0)
-        # # return triangular result only if tri == TRUE
-        # if (tri) 
-        #     result[lower.tri(result, diag = FALSE)] <- 0
-        # window = 0L
-        # weights = 1
-        # # make sure that zeros are sparse
-        # # result[result==0] <- 0
+    #     window <- max(lengths(x))
+    # }        
+        x <- tf(dfm(x, toLower = FALSE, verbose = FALSE), "boolean")
+        # get co-occurrence counts
+        result <- t(x) %*% x
+        # remove 1 from the diagonal so that target features are not counted as their own context
+        # Matrix::diag(result) <- ifelse(Matrix::diag(result) > 0, Matrix::diag(result) - 1, 0)
+        # return triangular result only if tri == TRUE
+        if (tri)
+            result[lower.tri(result, diag = FALSE)] <- 0
+        window = 0L
+        weights = 1
+        # make sure that zeros are sparse
+        # result[result==0] <- 0
 
-#    } else if (context == "window") {
+    } else if (context == "window") {
         
         # x <- ngrams(unlist(x), n = window, skip = 0:(window - 1)) #, ...)
         # x <- strsplit(x, "_")
@@ -120,7 +117,7 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"), window = 5L
                                        j = y$collocate, 
                                        x = 1L,
                                        dimnames = list(contexts = types, features = types))
- #   }
+    }
 
     # order the features alphabetically
     result <- result[order(rownames(result)), order(colnames(result))]
