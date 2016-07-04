@@ -50,17 +50,18 @@ cfm <- function(x, ...) {
 #' @param span_sentence if \code{FALSE}, then word windows will not span
 #'   sentences
 #' @param tri if \code{TRUE} return only upper triangle (including diagonal)
-#' @param verbose if \code{TRUE} print status messages to the console
 #' @examples
 #' # see http://bit.ly/29b2zOA
 #' txt <- "A D A C E A D F E B A C E D"
 #' cfm(txt, context = "window", window = 2)
 #' 
+#' # with multiple documents
 #' txts <- c("a a b b c", "a c e", "e f g")
 #' cfm(txts, context = "document")
 #' 
 #' txt <- c("The quick brown fox jumped over the lazy dog.",
 #'          "The dog jumped and ate the fox.")
+#' toks <- tokenize(toLower(txt), removePunct = TRUE)
 #' cfm(toks, context = "document")
 #' cfm(toks, context = "window", window = 3)
 #' cfm(toks, context = "window", window = 2)
