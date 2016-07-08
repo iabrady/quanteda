@@ -14,7 +14,11 @@ The cfm class of object is a special type of \link{dfm-class}.
 
 \item{\code{window}}{the size of the window, if \code{context = "window"}}
 
+\item{\code{count}}{how co-occurrences are counted}
+
 \item{\code{weights}}{context weighting for distance from target feature, equal in length to \code{window}}
+
+\item{\code{tri}}{whether the lower triangle of the symmetric \eqn{V \times V} matrix is recorded}
 }}
 \seealso{
 \link{cfm}
