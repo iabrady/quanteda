@@ -1,0 +1,235 @@
+#' @include dfm-classes.R
+
+#' @title Virtual class "cfm" for a context-feature matrix
+#' 
+#' @description The cfm class of object is a special type of \link{dfm-class}.
+#'   
+#' @slot context the context definition
+#' @slot window the size of the window, if \code{context = "window"}
+#' @slot count how co-occurrences are counted
+#' @slot weights context weighting for distance from target feature, equal in length to \code{window}
+#' @slot tri whether the lower triangle of the symmetric \eqn{V \times V} matrix is recorded
+#' @seealso \link{cfm}
+#' @export
+#' @import methods
+#' @docType class
+#' @name cfm-class
+setClass("cfm",
+         slots = c(context = "character", window = "integer", count = "character", weights = "numeric", tri = "logical"),
+         # prototype = list(Dimnames = list(contexts = NULL, features = NULL)),
+         contains = c("dfm", "dgCMatrix"))
+
+
+#' create a context-feature co-occurrence matrix
+#' 
+#' Create a sparse context-feature co-occurrence matrix, measuring 
+#' co-occurrences of features within a user-defined context. The context can be 
+#' defined as a document or a window within a collection of documents, with an 
+#' optional vector of weights applied to the co-occurrence counts.
+#' @param x character vector, corpus, or tokenized texts from which to generate 
+#'   the context-feature co-occurrence matrix.
+#' @author Kenneth Benoit (R) and Kohei Watanabe (C++)
+#' @import Matrix
+#' @export
+#' @details The funciton \link{cfm} provides a very general implementation of a 
+#'   "context-feature" matrix, consisting of a count of feature co-occurrence 
+#'   within a defined context.  This context, following Momtazi et. al. (2010), 
+#'   can be defined as the \emph{document}, \emph{sentences} within documents, 
+#'   \emph{syntactic relationships} beteeen features (nouns within a sentence,
+#'   for instance), or according to a \emph{window}.  When the context is a window, 
+#'   a weighting function is typically applied that is a function of distance from the 
+#'   target word (see Jurafsky and Martin 2015, Ch. 16).  
+#'   
+#'   \link{cfm} provides all of this functionality, returning a \eqn{V \times V} matrix
+#'   (where \eqn{V} is the vocabulary size, returned by \code{\link{ntype}}).  Because
+#'   this matrix is symmetric, the \code{tri = TRUE} option will only return the upper
+#'   part of the matrix.
+#'   
+#'   Unlike some implementations of co-occurrences, \link{cfm} counts feature co-occurrences 
+#'   with themselves, meaning that the diagonal will not be zero.
+#' @references Momtazi, S., Khudanpur, S., & Klakow, D. (2010). 
+#'   "\href{https://www.lsv.uni-saarland.de/fileadmin/publications/SaeedehMomtazi-HLT_NAACL10.pdf}{A
+#'    comparative study of word co-occurrence for term clustering in language 
+#'   model-based sentence retrieval.}" \emph{Human Language Technologies: The 
+#'   2010 Annual Conference of the North American Chapter of the ACL}, Los 
+#'   Angeles, California, June 2010, pp. 325–328.
+#'   
+#'   Daniel Jurafsky & James H. Martin. (2015) \emph{Speech and Language 
+#'   Processing}.  Draft of April 11, 2016. 
+#'   \href{https://web.stanford.edu/~jurafsky/slp3/16.pdf}{Chapter 16, Semantics
+#'   with Dense Vectors.}
+cfm <- function(x, ...) {
+    UseMethod("cfm")
+}
+
+#' @rdname cfm
+#' @param context the context in which to consider term co-occurrence: 
+#'   \code{"document"} for co-occurrence counts within document; \code{"window"}
+#'   for co-occurrence within a defined window of words, which requires a 
+#'   postive integer value for \code{window}
+#' @param window positive integer value for the size of a window on either side 
+#'   of the target feature, default is 5, meaning 5 words before and after the 
+#'   target feature
+#' @param count how to count co-occurrences:
+#'   \describe{
+#'   \item{\code{frequency}}{count the number of co-occurrences within the context}
+#'   \item{\code{boolean}}{count only the co-occurrence or not within the context, 
+#'    irrespective of how many times it occurs}
+#'   \item{\code{weighted}}{count a weighted function of counts, typically as a 
+#'   function of distance from the target feature.  Only makes sense for \code{context = "window"}.}
+#'   }
+#' @param weights a vector of weights applied to each distance from 
+#'   \code{1:window}, strictly decreasing and of the same length as 
+#'   \code{length(weights)}
+#' @param span_sentence if \code{FALSE}, then word windows will not span 
+#'   sentences
+#' @param tri if \code{TRUE} return only upper triangle (including diagonal)
+#' @param ... not used here
+#' @examples
+#' # see http://bit.ly/29b2zOA
+#' txt <- "A D A C E A D F E B A C E D"
+#' cfm(txt, context = "window", window = 2)
+#' cfm(txt, context = "window", window = 2, tri = FALSE)
+#' 
+#' # with multiple documents
+#' txts <- c("a a b b c", "a c e", "e f g")
+#' #### b IS DOUBLE COUNTED
+#' cfm(txts, context = "document", count = "frequency")
+#' #### DIAGONAL IS WRONG
+#' cfm(txts, context = "document", count = "boolean")
+#' 
+#' txt <- c("The quick brown fox jumped over the lazy dog.",
+#'          "The dog jumped and ate the fox.")
+#' toks <- tokenize(toLower(txt), removePunct = TRUE)
+#' cfm(toks, context = "document")
+#' cfm(toks, context = "window", window = 3)
+#' cfm(toks, context = "window", window = 2)
+#' @import data.table
+#' @import Matrix
+#' @export
+cfm.tokenizedTexts <- function(x, context = c("document", "window"), 
+                               count = c("frequency", "boolean", "weighted"),
+                               window = 5L,
+                               weights = rep(1, length(window)),
+                               span_sentence = TRUE, tri = TRUE, ...) {
+    context <- match.arg(context)
+    count <- match.arg(count)
+    feature <- V1 <- NULL  # to avoid no visible binding errors in CHECK
+    # could add a warning if not roundly coerced to integer
+    window <- as.integer(window)
+    
+    if (!span_sentence) 
+        warning("spanSentence = FALSE not yet implemented")
+    
+    if (context == "document") {
+        if (count == "boolean") {
+            x <- tf(dfm(x, toLower = FALSE, verbose = FALSE), "boolean")
+            result <- t(x) %*% x
+            window = 0L
+            weights = 1
+        } else if (count == "frequency") {
+            window <- max(lengths(x))
+        } else {
+            stop("Cannot have weighted counts with context = \"document\"")
+        }
+    }
+        
+    if (context == "window" | (context == "document" & count == "frequency")) {
+        types <- unique(unlist(x, use.names = FALSE))
+        n <- sum(lengths(x)) * window * 2
+        y <- fcm_cpp(x, types, window, n)
+        result <- Matrix::sparseMatrix(i = y$target, 
+                                       j = y$collocate, 
+                                       x = 1L,
+                                       dimnames = list(contexts = types, features = types))
+    }
+
+    # order the features alphabetically
+    result <- result[order(rownames(result)), order(colnames(result))]
+
+    # discard the lower diagonal if tri == TRUE
+    if (tri)
+        result[lower.tri(result, diag = FALSE)] <- 0
+
+    # create a new feature context matrix
+    result <- new("cfm", as(result, "dgCMatrix"), count = count,
+                  context = context, window = window, weights = weights, tri = tri)
+    # set the names 
+    names(result@Dimnames) <- c("contexts", "features")
+    result
+}     
+
+
+
+#' @rdname cfm
+#' @export
+cfm.corpus <- function(x, ...) {
+    cfm(texts(x), ...)
+}
+
+#' @rdname cfm
+#' @export
+cfm.character <- function(x, ...) {
+    cfm(tokenize(x), ...)
+}
+
+
+#' @rdname print.dfm
+#' @export
+setMethod("print", signature(x = "cfm"), 
+          function(x, show.values = FALSE, show.settings = FALSE, show.summary = TRUE, nfeature = 20L, ...) {
+              ndoc <- nfeature
+              if (show.summary) {
+                  cat("Context-feature matrix of: ",
+                      format(ndoc(x), , big.mark = ","), " context",
+                      ifelse(ndoc(x) > 1 | ndoc(x) == 0, "s, ", ", "),
+                      format(nfeature(x), big.mark = ","), " feature",
+                      ifelse(nfeature(x) > 1 | nfeature(x) == 0, "s", ""),
+                      ifelse(is.resampled(x), paste(", ", nresample(x), " resamples", sep = ""), ""),
+                      ".\n", sep = "")
+              }
+              if (show.settings) {
+                  cat("Settings: TO BE IMPLEMENTED.")
+              }
+              if (show.values | (nrow(x) <= ndoc & ncol(x) <= nfeature)) {
+                  Matrix::printSpMatrix2(x[1:min(ndoc, ndoc(x)), 1:min(nfeature, nfeature(x))], 
+                                         col.names = TRUE, 
+                                         zero.print = ifelse(x@tri, ".", 0), ...)
+              }
+          })
+
+#' @rdname print.dfm
+setMethod("show", signature(object = "cfm"), function(object) print(object))
+
+
+# # C++ wrapper for cfm()
+# # Author: Kohei Watanabe
+# cfmCpp_tokenizedTexts <- function(x, context = c("document", "window"), window = 5L, verbose = FALSE) {
+#     context <- match.arg(context)
+#     if (context == 'document') {
+#         window <- max(lengths(x))
+#     }
+#     types <- unique(unlist(x, use.names=FALSE))
+#     n <- sum(lengths(x)) * window * 2
+#     y <- fcm_cpp(x, types, window, n)
+#     
+#     if (verbose) message("Making sparseMatrix\n")
+#     mx <- Matrix::sparseMatrix(i = y$target, 
+#                                j = y$collocate, 
+#                                x = 1L,
+#                                dimnames = list(context = types, features = types))
+#     
+#     return(mx)
+# }
+# 
+
+ 
+
+
+
+
+
+
+
+      
+
