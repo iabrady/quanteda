@@ -20,6 +20,7 @@ setClass("cfm",
          contains = c("dfm", "dgCMatrix"))
 
 
+
 #' create a context-feature co-occurrence matrix
 #' 
 #' Create a sparse context-feature co-occurrence matrix, measuring 
