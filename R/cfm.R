@@ -136,13 +136,22 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"),
     }
         
     if (context == "window" | (context == "document" & count == "frequency")) {
+        if (context == "window" & count == "weighted"){
+          if (length(weights) != window){
+            warning ("weights length is not equal to window size, weights is assigned by default!")
+            weights = 1
+          }
+        }
         types <- unique(unlist(x, use.names = FALSE))
         n <- sum(lengths(x)) * window * 2
-        y <- fcm_cpp(x, types, window, n)
+        y <- fcm_cpp(x, types, count, window, weights, n)
+        sizeM<-max(y$target,y$collocate)
         result <- Matrix::sparseMatrix(i = y$target, 
                                        j = y$collocate, 
-                                       x = 1L,
-                                       dimnames = list(contexts = types, features = types))
+                                       x = y$values,
+                                       dims=c(sizeM,sizeM),
+                                       dimnames = list(contexts = types, features = types),
+                                       symmetric = TRUE)
     }
 
     # order the features alphabetically
