@@ -51,13 +51,15 @@ List fcm_cpp(List &texts,
             index_col[k] = id_i;
         }
         if (count == "frequency"){
-          xValue[k]=1;
+            xValue[k]=1;
         }else if(count == "weighted"){ 
-          if (weights.size() == 1){
-            xValue[k] = 1.0/(j-i);  // be default, weights=1/offset
-          }else{
-            xValue[k]=weights[j-j_int];
-          }
+            if (weights.size() == 1){
+                xValue[k] = 1.0/(j-i);  // be default, weights=1/offset
+            }else{
+                xValue[k]=weights[j-j_int];
+            }
+        }else{
+            xValue[k]=1;        // not weighted
         }
         k++;
         

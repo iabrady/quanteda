@@ -111,7 +111,7 @@ cfm <- function(x, ...) {
 cfm.tokenizedTexts <- function(x, context = c("document", "window"), 
                                count = c("frequency", "boolean", "weighted"),
                                window = 5L,
-                               weights = rep(1, length(window)),
+                               weights = 1L,
                                span_sentence = TRUE, tri = TRUE, ...) {
     context <- match.arg(context)
     count <- match.arg(count)
@@ -123,22 +123,27 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"),
         warning("spanSentence = FALSE not yet implemented")
     
     if (context == "document") {
+        tokenCount<-dfm(x, toLower = FALSE, verbose = FALSE)
         if (count == "boolean") {
-            x <- tf(dfm(x, toLower = FALSE, verbose = FALSE), "boolean")
-            result <- t(x) %*% x
+            x <- tf(tokenCount, "boolean")
+            #result <- t(x) %*% x
+            #ft<-apply(tokenCount,MARGIN =2, function(x) any(x>1))
+            result<-Matrix::crossprod(x)
             window = 0L
             weights = 1
         } else if (count == "frequency") {
-            window <- max(lengths(x))
+            #window <- max(lengths(x))
+            result<-Matrix::crossprod(tokenCount)
         } else {
             stop("Cannot have weighted counts with context = \"document\"")
         }
     }
         
-    if (context == "window" | (context == "document" & count == "frequency")) {
-        if (context == "window" & count == "weighted"){
+    #if (context == "window" | (context == "document" & count == "frequency")) {
+    if (context == "window") {    
+        if (count == "weighted"){
           if (length(weights) != window){
-            warning ("weights length is not equal to window size, weights is assigned by default!")
+            warning ("weights length is not equal to the window size, weights are assigned by default!")
             weights = 1
           }
         }
