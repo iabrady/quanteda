@@ -29,7 +29,7 @@ setClass("cfm",
 #' optional vector of weights applied to the co-occurrence counts.
 #' @param x character vector, corpus, or tokenized texts from which to generate 
 #'   the context-feature co-occurrence matrix.
-#' @author Kenneth Benoit (R) and Kohei Watanabe (C++)
+#' @author Kenneth Benoit (R), Kohei Watanabe (C++) and Haiyan Wang
 #' @import Matrix
 #' @export
 #' @details The funciton \link{cfm} provides a very general implementation of a 
@@ -80,7 +80,7 @@ cfm <- function(x, ...) {
 #'   function of distance from the target feature.  Only makes sense for \code{context = "window"}.}
 #'   }
 #' @param weights a vector of weights applied to each distance from 
-#'   \code{1:window}, strictly decreasing and of the same length as 
+#'   \code{1:window}, strictly decreasing by default; can be a customer defined vector of the same length as 
 #'   \code{length(weights)}
 #' @param span_sentence if \code{FALSE}, then word windows will not span 
 #'   sentences
@@ -91,12 +91,12 @@ cfm <- function(x, ...) {
 #' txt <- "A D A C E A D F E B A C E D"
 #' cfm(txt, context = "window", window = 2)
 #' cfm(txt, context = "window", window = 2, tri = FALSE)
+#' cfm(txt, context = "window", count = "weighted", window = 2, tri = FALSE)
+#' cfm(txt, context = "window", count = "weighted", window = 3, weights = c(3,2,1), tri = FALSE)
 #' 
 #' # with multiple documents
-#' txts <- c("a a b b c", "a c e", "e f g")
-#' #### b IS DOUBLE COUNTED
+#' txts <- c("a a a b b c", "a a c e", "e f g")
 #' cfm(txts, context = "document", count = "frequency")
-#' #### DIAGONAL IS WRONG
 #' cfm(txts, context = "document", count = "boolean")
 #' 
 #' txt <- c("The quick brown fox jumped over the lazy dog.",
@@ -123,40 +123,47 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"),
         warning("spanSentence = FALSE not yet implemented")
     
     if (context == "document") {
-        tokenCount<-dfm(x, toLower = FALSE, verbose = FALSE)
+        tokenCount <- dfm(x, toLower = FALSE, verbose = FALSE)
         if (count == "boolean") {
-            x <- tf(tokenCount, "boolean")
-            #result <- t(x) %*% x
-            #ft<-apply(tokenCount,MARGIN =2, function(x) any(x>1))
-            result<-Matrix::crossprod(x)
-            window = 0L
-            weights = 1
+            x <- tf(tokenCount, "boolean") 
+            result <- Matrix::crossprod(x) 
+            tokenCo <- tokenCount > 1
         } else if (count == "frequency") {
-            #window <- max(lengths(x))
-            result<-Matrix::crossprod(tokenCount)
+            result <- Matrix::crossprod(tokenCount)
+            tokenCo <- apply(tokenCount, MARGIN=c(1,2), function(x) choose(x,2))
         } else {
             stop("Cannot have weighted counts with context = \"document\"")
         }
+        tokenCoSum <- apply(tokenCo, MARGIN = 2, sum)
+        ft <- tokenCoSum >= 1
+        diagIndex <- which(ft)
+        lengthToken <- length(ft)
+        diagCount <- Matrix::sparseMatrix(i = diagIndex,
+                                          j = diagIndex,
+                                          x = tokenCoSum[ft],
+                                          dims = c(lengthToken , lengthToken))
+        diag(result) <- 0
+        result <- result + diagCount
     }
         
-    #if (context == "window" | (context == "document" & count == "frequency")) {
     if (context == "window") {    
         if (count == "weighted"){
-          if (length(weights) != window){
-            warning ("weights length is not equal to the window size, weights are assigned by default!")
-            weights = 1
-          }
+            if (!missing(weights) & length(weights) != window){
+                warning ("weights length is not equal to the window size, weights are assigned by default!")
+                weights <- 1
+            }
         }
         types <- unique(unlist(x, use.names = FALSE))
         n <- sum(lengths(x)) * window * 2
         y <- fcm_cpp(x, types, count, window, weights, n)
-        sizeM<-max(y$target,y$collocate)
+        sizeM <- max(y$target, y$collocate)
         result <- Matrix::sparseMatrix(i = y$target, 
                                        j = y$collocate, 
                                        x = y$values,
-                                       dims=c(sizeM,sizeM),
+                                       dims = c(sizeM, sizeM),
                                        dimnames = list(contexts = types, features = types),
                                        symmetric = TRUE)
+        if (count == "boolean") result <- (result >= 1) * 1
     }
 
     # order the features alphabetically

@@ -29,7 +29,7 @@ List fcm_cpp(List &texts,
   for (int g = 0; g < types.size(); g++) {
     id[types[g]] = g + 1;
   }
-  for (int w=0;w<weights.size();w++) Rcout<<weights[w]<<" ";
+  
   int k = 0;
   for (int h = 0; h < texts.size(); h++) {
     StringVector text = texts[h];
@@ -50,7 +50,7 @@ List fcm_cpp(List &texts,
             index_tgt[k] = id_j;
             index_col[k] = id_i;
         }
-        if (count == "frequency"){
+        if (count == "frequency" || count == "boolean"){
             xValue[k]=1;
         }else if(count == "weighted"){ 
             if (weights.size() == 1){
@@ -58,8 +58,6 @@ List fcm_cpp(List &texts,
             }else{
                 xValue[k]=weights[j-j_int];
             }
-        }else{
-            xValue[k]=1;        // not weighted
         }
         k++;
         
