@@ -15,11 +15,13 @@ using namespace Rcpp;
 //
 
 // [[Rcpp::export]]
+
 List fcm_cpp(List &texts,
              const CharacterVector &types,
              const String &count,
              const int &window,
              const NumericVector &weights,
+             const bool &ordered,
              const int &n) {
   
   IntegerVector index_tgt(n);
@@ -42,13 +44,17 @@ List fcm_cpp(List &texts,
         if(i==j) continue;
         int id_j = id[text[j]];
         //Rcout << k << " " << id_i << " " << id_j << "\n";
-        
-        if (id_i<id_j){
+        if (ordered){
             index_tgt[k] = id_i;
             index_col[k] = id_j;
         }else{
-            index_tgt[k] = id_j;
-            index_col[k] = id_i;
+            if (id_i<id_j){
+                index_tgt[k] = id_i;
+                index_col[k] = id_j;
+            }else{
+                index_tgt[k] = id_j;
+                index_col[k] = id_i;
+            }
         }
         if (count == "frequency" || count == "boolean"){
             xValue[k]=1;
@@ -68,9 +74,19 @@ List fcm_cpp(List &texts,
                       Named("collocate") = index_col[seq(0, k - 1)],
                       Named("values") = xValue[seq(0, k - 1)]);
 }
+/*
+#include <RcppArmadillo.h>
+// [[Rcpp::depends("RcppArmadillo")]]
+using namespace Rcpp ;
 
-
-
+// [[Rcpp::export]]
+arma::sp_mat fcm_cpp(){
+    arma::sp_mat A(5,5);
+    A(0,0) = 1;
+    A(1,0) = 2;
+    return A ;
+}
+*/
 // You can include R code blocks in C++ files processed with sourceCpp
 // (useful for testing and development). The R code will be automatically 
 // run after the compilation.
@@ -79,5 +95,5 @@ List fcm_cpp(List &texts,
 /*** R
 
 #fcm_cpp(rep(list(letters), 100), letters, 5, 26 * 100 * (5 * 2))
-fcm_cpp(rep(list(letters), 100), letters, 5, 26 * 100 * (5 * 2))
+#fcm_cpp(rep(list(letters), 100), letters, 5, 26 * 100 * (5 * 2))
 */

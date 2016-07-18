@@ -15,7 +15,7 @@
 #' @docType class
 #' @name cfm-class
 setClass("cfm",
-         slots = c(context = "character", window = "integer", count = "character", weights = "numeric", tri = "logical"),
+         slots = c(context = "character", window = "integer", count = "character", weights = "numeric", ordered = "logical", tri = "logical"),
          # prototype = list(Dimnames = list(contexts = NULL, features = NULL)),
          contains = c("dfm", "dgCMatrix"))
 
@@ -39,11 +39,11 @@ setClass("cfm",
 #'   \emph{syntactic relationships} beteeen features (nouns within a sentence,
 #'   for instance), or according to a \emph{window}.  When the context is a window, 
 #'   a weighting function is typically applied that is a function of distance from the 
-#'   target word (see Jurafsky and Martin 2015, Ch. 16).  
+#'   target word (see Jurafsky and Martin 2015, Ch. 16) and ordered co-occurrence of 
+#'   the two terms is counted (see Chruch, K.W. & Hanks, P. (1990)).  
 #'   
-#'   \link{cfm} provides all of this functionality, returning a \eqn{V \times V} matrix
-#'   (where \eqn{V} is the vocabulary size, returned by \code{\link{ntype}}).  Because
-#'   this matrix is symmetric, the \code{tri = TRUE} option will only return the upper
+#'   \link{cfm} provides all of this functionality, returning a \eqn{V * V} matrix
+#'   (where \eqn{V} is the vocabulary size, returned by \code{\link{ntype}}). The \code{tri = TRUE} option will only return the upper
 #'   part of the matrix.
 #'   
 #'   Unlike some implementations of co-occurrences, \link{cfm} counts feature co-occurrences 
@@ -59,6 +59,10 @@ setClass("cfm",
 #'   Processing}.  Draft of April 11, 2016. 
 #'   \href{https://web.stanford.edu/~jurafsky/slp3/16.pdf}{Chapter 16, Semantics
 #'   with Dense Vectors.}
+#'   
+#'   Chruch, K.W. & Hanks, P. (1990)  "\href{http://dl.acm.org/citation.cfm?id=89095}{Word 
+#'   association norms, mutual information, and lexicography}"\emph {Computational Linguistics, 16(1):22–29.}
+
 cfm <- function(x, ...) {
     UseMethod("cfm")
 }
@@ -82,6 +86,8 @@ cfm <- function(x, ...) {
 #' @param weights a vector of weights applied to each distance from 
 #'   \code{1:window}, strictly decreasing by default; can be a customer defined vector of the same length as 
 #'   \code{length(weights)}
+#' @param ordered if \code{TRUE} a term before or after the target feature is counted seperately. 
+#'      Only makes sense for context = "window".
 #' @param span_sentence if \code{FALSE}, then word windows will not span 
 #'   sentences
 #' @param tri if \code{TRUE} return only upper triangle (including diagonal)
@@ -90,7 +96,7 @@ cfm <- function(x, ...) {
 #' # see http://bit.ly/29b2zOA
 #' txt <- "A D A C E A D F E B A C E D"
 #' cfm(txt, context = "window", window = 2)
-#' cfm(txt, context = "window", window = 2, tri = FALSE)
+#' cfm(txt, context = "window", window = 2, ordered = TRUE, tri = FALSE)
 #' cfm(txt, context = "window", count = "weighted", window = 2, tri = FALSE)
 #' cfm(txt, context = "window", count = "weighted", window = 3, weights = c(3,2,1), tri = FALSE)
 #' 
@@ -112,6 +118,7 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"),
                                count = c("frequency", "boolean", "weighted"),
                                window = 5L,
                                weights = 1L,
+                               ordered = FALSE,
                                span_sentence = TRUE, tri = TRUE, ...) {
     context <- match.arg(context)
     count <- match.arg(count)
@@ -155,14 +162,24 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"),
         }
         types <- unique(unlist(x, use.names = FALSE))
         n <- sum(lengths(x)) * window * 2
-        y <- fcm_cpp(x, types, count, window, weights, n)
+        y <- fcm_cpp(x, types, count, window, weights, ordered, n)
+        #y<-fcm_cpp()
         sizeM <- max(y$target, y$collocate)
-        result <- Matrix::sparseMatrix(i = y$target, 
-                                       j = y$collocate, 
-                                       x = y$values,
-                                       dims = c(sizeM, sizeM),
-                                       dimnames = list(contexts = types, features = types),
-                                       symmetric = TRUE)
+        if (ordered){
+            result <- Matrix::sparseMatrix(i = y$target, 
+                                           j = y$collocate, 
+                                           x = y$values,
+                                           dims = c(sizeM, sizeM),
+                                           dimnames = list(contexts = types, features = types),
+                                           symmetric = FALSE)
+        }else{
+            result <- Matrix::sparseMatrix(i = y$target, 
+                                           j = y$collocate, 
+                                           x = y$values,
+                                           dims = c(sizeM, sizeM),
+                                           dimnames = list(contexts = types, features = types),
+                                           symmetric = TRUE)
+        }
         if (count == "boolean") result <- (result >= 1) * 1
     }
 
