@@ -61,7 +61,7 @@ setClass("cfm",
 #'   with Dense Vectors.}
 #'   
 #'   Chruch, K.W. & Hanks, P. (1990)  "\href{http://dl.acm.org/citation.cfm?id=89095}{Word 
-#'   association norms, mutual information, and lexicography}"\emph {Computational Linguistics, 16(1):22–29.}
+#'   association norms, mutual information, and lexicography}" \emph{Computational Linguistics}, 16(1):22–29.
 
 cfm <- function(x, ...) {
     UseMethod("cfm")
@@ -86,8 +86,8 @@ cfm <- function(x, ...) {
 #' @param weights a vector of weights applied to each distance from 
 #'   \code{1:window}, strictly decreasing by default; can be a customer defined vector of the same length as 
 #'   \code{length(weights)}
-#' @param ordered if \code{TRUE} a term before or after the target feature is counted seperately. 
-#'      Only makes sense for context = "window".
+#' @param ordered if \code{TRUE} the number of times that a term appears before or after the target feature 
+#'      are counted seperately. Only makes sense for context = "window".
 #' @param span_sentence if \code{FALSE}, then word windows will not span 
 #'   sentences
 #' @param tri if \code{TRUE} return only upper triangle (including diagonal)
@@ -96,8 +96,7 @@ cfm <- function(x, ...) {
 #' # see http://bit.ly/29b2zOA
 #' txt <- "A D A C E A D F E B A C E D"
 #' cfm(txt, context = "window", window = 2)
-#' cfm(txt, context = "window", window = 2, ordered = TRUE, tri = FALSE)
-#' cfm(txt, context = "window", count = "weighted", window = 2, tri = FALSE)
+#' cfm(txt, context = "window", count = "weighted", window = 2,ordered = TRUE,  tri = FALSE)
 #' cfm(txt, context = "window", count = "weighted", window = 3, weights = c(3,2,1), tri = FALSE)
 #' 
 #' # with multiple documents
@@ -110,7 +109,6 @@ cfm <- function(x, ...) {
 #' toks <- tokenize(toLower(txt), removePunct = TRUE)
 #' cfm(toks, context = "document")
 #' cfm(toks, context = "window", window = 3)
-#' cfm(toks, context = "window", window = 2)
 #' @import data.table
 #' @import Matrix
 #' @export
@@ -131,6 +129,7 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"),
     
     if (context == "document") {
         tokenCount <- dfm(x, toLower = FALSE, verbose = FALSE)
+        
         if (count == "boolean") {
             x <- tf(tokenCount, "boolean") 
             result <- Matrix::crossprod(x) 
@@ -141,6 +140,7 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"),
         } else {
             stop("Cannot have weighted counts with context = \"document\"")
         }
+        
         tokenCoSum <- apply(tokenCo, MARGIN = 2, sum)
         ft <- tokenCoSum >= 1
         diagIndex <- which(ft)
@@ -151,6 +151,9 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"),
                                           dims = c(lengthToken , lengthToken))
         diag(result) <- 0
         result <- result + diagCount
+        
+        # order the features alphabetically
+        result <- result[order(rownames(result)), order(colnames(result))]
     }
         
     if (context == "window") {    
@@ -161,30 +164,18 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"),
             }
         }
         types <- unique(unlist(x, use.names = FALSE))
-        n <- sum(lengths(x)) * window * 2
-        y <- fcm_cpp(x, types, count, window, weights, ordered, n)
-        #y<-fcm_cpp()
-        sizeM <- max(y$target, y$collocate)
-        if (ordered){
-            result <- Matrix::sparseMatrix(i = y$target, 
-                                           j = y$collocate, 
-                                           x = y$values,
-                                           dims = c(sizeM, sizeM),
-                                           dimnames = list(contexts = types, features = types),
-                                           symmetric = FALSE)
-        }else{
-            result <- Matrix::sparseMatrix(i = y$target, 
-                                           j = y$collocate, 
-                                           x = y$values,
-                                           dims = c(sizeM, sizeM),
-                                           dimnames = list(contexts = types, features = types),
-                                           symmetric = TRUE)
-        }
+        
+        # order the features alphabetically
+        types <- sort(types)
+        
+        result <- fcm_cpp(x, types, count, window, weights, ordered)
         if (count == "boolean") result <- (result >= 1) * 1
+    
+        # set the dimnames of result
+        dimnames(result) <- list(contexts = types, features = types)
     }
 
-    # order the features alphabetically
-    result <- result[order(rownames(result)), order(colnames(result))]
+    
 
     # discard the lower diagonal if tri == TRUE
     if (tri)
@@ -262,7 +253,14 @@ setMethod("show", signature(object = "cfm"), function(object) print(object))
 # }
 # 
 
- 
+# comparing with text2vec
+#library(text2vec)
+#txt <- "A D A C E A D F E B A C E D"
+#tokens <- txt$review %>% tolower %>% word_tokenizer
+#it <- itoken(tokens)
+#v <- create_vocabulary(it)
+#vectorizer <- vocab_vectorizer(v, grow_dtm = FALSE, skip_grams_window = 3L)
+#tcm <- create_tcm(itoken(tokens), vectorizer)
 
 
 
