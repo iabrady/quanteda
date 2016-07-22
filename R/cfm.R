@@ -40,7 +40,7 @@ setClass("cfm",
 #'   for instance), or according to a \emph{window}.  When the context is a window, 
 #'   a weighting function is typically applied that is a function of distance from the 
 #'   target word (see Jurafsky and Martin 2015, Ch. 16) and ordered co-occurrence of 
-#'   the two terms is counted (see Chruch, K.W. & Hanks, P. (1990)).  
+#'   the two features is considered (see Chruch, K.W. & Hanks, P. (1990)).  
 #'   
 #'   \link{cfm} provides all of this functionality, returning a \eqn{V * V} matrix
 #'   (where \eqn{V} is the vocabulary size, returned by \code{\link{ntype}}). The \code{tri = TRUE} option will only return the upper
@@ -48,6 +48,8 @@ setClass("cfm",
 #'   
 #'   Unlike some implementations of co-occurrences, \link{cfm} counts feature co-occurrences 
 #'   with themselves, meaning that the diagonal will not be zero.
+#'   
+#'   \link{cfm} also provides "boolean" counting within the context of "window", which differs from the counting within "document".  
 #' @references Momtazi, S., Khudanpur, S., & Klakow, D. (2010). 
 #'   "\href{https://www.lsv.uni-saarland.de/fileadmin/publications/SaeedehMomtazi-HLT_NAACL10.pdf}{A
 #'    comparative study of word co-occurrence for term clustering in language 
@@ -79,7 +81,7 @@ cfm <- function(x, ...) {
 #'   \describe{
 #'   \item{\code{frequency}}{count the number of co-occurrences within the context}
 #'   \item{\code{boolean}}{count only the co-occurrence or not within the context, 
-#'    irrespective of how many times it occurs}
+#'    irrespective of how many times it occurs.}
 #'   \item{\code{weighted}}{count a weighted function of counts, typically as a 
 #'   function of distance from the target feature.  Only makes sense for \code{context = "window"}.}
 #'   }
