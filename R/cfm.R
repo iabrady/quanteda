@@ -96,13 +96,14 @@ cfm <- function(x, ...) {
 #' # see http://bit.ly/29b2zOA
 #' txt <- "A D A C E A D F E B A C E D"
 #' cfm(txt, context = "window", window = 2)
-#' cfm(txt, context = "window", count = "weighted", window = 2,ordered = TRUE,  tri = FALSE)
-#' cfm(txt, context = "window", count = "weighted", window = 3, weights = c(3,2,1), tri = FALSE)
+#' cfm(txt, context = "window", count = "weighted", window = 3)
+#' cfm(txt, context = "window", count = "weighted", window = 3, weights = c(3,2,1), ,ordered = TRUE, tri = FALSE)
 #' 
 #' # with multiple documents
-#' txts <- c("a a a b b c", "a a c e", "e f g")
+#' txts <- c("a a a b b c", "a a c e", "a c e f g")
 #' cfm(txts, context = "document", count = "frequency")
 #' cfm(txts, context = "document", count = "boolean")
+#' cfm(txts, context = "window", count = "boolean", window = 2)
 #' 
 #' txt <- c("The quick brown fox jumped over the lazy dog.",
 #'          "The dog jumped and ate the fox.")
@@ -141,6 +142,7 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"),
             stop("Cannot have weighted counts with context = \"document\"")
         }
         
+        # compute co_occurrence of the diagonal elements
         tokenCoSum <- apply(tokenCo, MARGIN = 2, sum)
         ft <- tokenCoSum >= 1
         diagIndex <- which(ft)
@@ -150,13 +152,16 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"),
                                           x = tokenCoSum[ft],
                                           dims = c(lengthToken , lengthToken))
         diag(result) <- 0
+        
         result <- result + diagCount
         
         # order the features alphabetically
         result <- result[order(rownames(result)), order(colnames(result))]
     }
         
-    if (context == "window") {    
+    if (context == "window") { 
+        try(if(window < 2) stop("The window size is too small.")) 
+            
         if (count == "weighted"){
             if (!missing(weights) & length(weights) != window){
                 warning ("weights length is not equal to the window size, weights are assigned by default!")
@@ -167,10 +172,8 @@ cfm.tokenizedTexts <- function(x, context = c("document", "window"),
         
         # order the features alphabetically
         types <- sort(types)
-        
-        result <- fcm_cpp(x, types, count, window, weights, ordered)
-        if (count == "boolean") result <- (result >= 1) * 1
-    
+        n <- sum(lengths(x)) * (window + 1)
+        result <- fcm_cpp(x, types, count, window, weights, ordered, n)
         # set the dimnames of result
         dimnames(result) <- list(contexts = types, features = types)
     }
@@ -256,7 +259,7 @@ setMethod("show", signature(object = "cfm"), function(object) print(object))
 # comparing with text2vec
 #library(text2vec)
 #txt <- "A D A C E A D F E B A C E D"
-#tokens <- txt$review %>% tolower %>% word_tokenizer
+#tokens <- txt %>% tolower %>% word_tokenizer
 #it <- itoken(tokens)
 #v <- create_vocabulary(it)
 #vectorizer <- vocab_vectorizer(v, grow_dtm = FALSE, skip_grams_window = 3L)
